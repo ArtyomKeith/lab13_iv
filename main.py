@@ -15,19 +15,22 @@ def load_geojson(url):
 # Загрузка данных
 gdf = load_geojson(geojson_url)
 
+# Выводим информацию о данных для диагностики
+st.write(gdf.head())
+
 # Центр карты (вычисляем автоматически)
 center_lat = gdf.geometry.centroid.y.mean()
 center_lon = gdf.geometry.centroid.x.mean()
 
 # Создание карты с Folium
 st.title("Интерактивная карта кампуса")
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain",
-                        attr="Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="OpenStreetMap")
 
 # Добавление данных на карту
 for _, row in gdf.iterrows():
     coords = row.geometry.exterior.coords if row.geometry.type == "Polygon" else row.geometry.coords
     popup_text = f"<b>{row['название']}</b><br>{row['описание']}"
+    
     if row.geometry.type == "Polygon":
         folium.Polygon(
             locations=[(lat, lon) for lon, lat in coords],
@@ -35,6 +38,11 @@ for _, row in gdf.iterrows():
             fill=True,
             fill_opacity=0.4,
             popup=folium.Popup(popup_text, max_width=300),
+        ).add_to(campus_map)
+    elif row.geometry.type == "Point":
+        folium.Marker(
+            location=[coords[1], coords[0]],
+            popup=popup_text
         ).add_to(campus_map)
 
 # Отображение карты в Streamlit
