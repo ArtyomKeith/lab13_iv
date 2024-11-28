@@ -31,8 +31,8 @@ if search_term:
 else:
     filtered_gdf = gdf
 
-# Создание карты с Folium
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain")
+# Создание карты с Folium (Используем стандартные плитки OpenStreetMap)
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="OpenStreetMap")
 
 # Добавление данных на карту
 for _, row in filtered_gdf.iterrows():
