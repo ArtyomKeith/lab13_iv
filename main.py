@@ -21,7 +21,8 @@ center_lon = gdf.geometry.centroid.x.mean()
 
 # Создание карты с Folium
 st.title("Интерактивная карта кампуса")
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain")
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain",
+                        attr="Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
 
 # Добавление данных на карту
 for _, row in gdf.iterrows():
