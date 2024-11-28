@@ -1,33 +1,40 @@
-import folium
-import pandas as pd
+import streamlit as st
 import geopandas as gpd
-from shapely import wkt
-import webbrowser
+import folium
+from streamlit_folium import st_folium
 
-data = pd.read_csv("Универ.csv")
+# URL вашего GeoJSON-файла на GitHub
+geojson_url = "https://raw.githubusercontent.com/<ваш_пользователь>/<ваш_репозиторий>/main/campus.geojson"
 
-if 'geometry' not in data.columns:
-    data['geometry'] = data['WKT'].apply(wkt.loads)
+# Загрузка GeoJSON
+@st.cache_data
+def load_geojson(url):
+    gdf = gpd.read_file(url)
+    return gdf
 
-gdf = gpd.GeoDataFrame(data, geometry='geometry')
+# Загрузка данных
+gdf = load_geojson(geojson_url)
 
-geometry = gdf.iloc[0]['geometry']
-center = geometry.centroid
+# Центр карты (вычисляем автоматически)
+center_lat = gdf.geometry.centroid.y.mean()
+center_lon = gdf.geometry.centroid.x.mean()
 
-campus_map = folium.Map(location=[center.y, center.x], zoom_start=17)
+# Создание карты с Folium
+st.title("Интерактивная карта кампуса")
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain")
 
-folium.GeoJson(
-    geometry,
-    style_function=lambda x: {
-        'fillColor': 'blue',
-        'color': 'blue',
-        'weight': 2,
-        'fillOpacity': 0.3
-    }
-).add_to(campus_map)
+# Добавление данных на карту
+for _, row in gdf.iterrows():
+    coords = row.geometry.exterior.coords if row.geometry.type == "Polygon" else row.geometry.coords
+    popup_text = f"<b>{row['название']}</b><br>{row['описание']}"
+    if row.geometry.type == "Polygon":
+        folium.Polygon(
+            locations=[(lat, lon) for lon, lat in coords],
+            color="blue",
+            fill=True,
+            fill_opacity=0.4,
+            popup=folium.Popup(popup_text, max_width=300),
+        ).add_to(campus_map)
 
-campus_map.fit_bounds(geometry.bounds)
-
-campus_map.save("campus_map.html")
-
-webbrowser.open("campus_map.html")
+# Отображение карты в Streamlit
+st_data = st_folium(campus_map, width=700, height=500)
