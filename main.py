@@ -15,22 +15,29 @@ def load_geojson(url):
 # Загрузка данных
 gdf = load_geojson(geojson_url)
 
-# Выводим информацию о данных для диагностики
-st.write(gdf.head())
-
 # Центр карты (вычисляем автоматически)
 center_lat = gdf.geometry.centroid.y.mean()
 center_lon = gdf.geometry.centroid.x.mean()
 
-# Создание карты с Folium
+# Убираем таблицу, добавляем элементы управления
 st.title("Интерактивная карта кампуса")
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="OpenStreetMap")
+
+# Поиск по названию
+search_term = st.text_input("Поиск по названию объекта", "")
+
+# Фильтрация данных по поисковому запросу
+if search_term:
+    filtered_gdf = gdf[gdf['название'].str.contains(search_term, case=False, na=False)]
+else:
+    filtered_gdf = gdf
+
+# Создание карты с Folium
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="Stamen Terrain")
 
 # Добавление данных на карту
-for _, row in gdf.iterrows():
+for _, row in filtered_gdf.iterrows():
     coords = row.geometry.exterior.coords if row.geometry.type == "Polygon" else row.geometry.coords
     popup_text = f"<b>{row['название']}</b><br>{row['описание']}"
-    
     if row.geometry.type == "Polygon":
         folium.Polygon(
             locations=[(lat, lon) for lon, lat in coords],
@@ -39,11 +46,10 @@ for _, row in gdf.iterrows():
             fill_opacity=0.4,
             popup=folium.Popup(popup_text, max_width=300),
         ).add_to(campus_map)
-    elif row.geometry.type == "Point":
-        folium.Marker(
-            location=[coords[1], coords[0]],
-            popup=popup_text
-        ).add_to(campus_map)
+
+# Кнопка для сброса поиска
+if st.button("Сбросить поиск"):
+    search_term = ""
 
 # Отображение карты в Streamlit
 st_data = st_folium(campus_map, width=700, height=500)
