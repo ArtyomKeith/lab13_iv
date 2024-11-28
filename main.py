@@ -20,7 +20,7 @@ center_lat = gdf.geometry.centroid.y.mean()
 center_lon = gdf.geometry.centroid.x.mean()
 
 # Убираем таблицу, добавляем элементы управления
-st.title("Интерактивная карта кампуса")
+st.title("Интерактивная карта кампуса Казахского агротехнического университета")
 
 # Поиск по названию
 search_term = st.text_input("Поиск по названию объекта", "")
@@ -31,8 +31,9 @@ if search_term:
 else:
     filtered_gdf = gdf
 
-# Создание карты с Folium (Используем стандартные плитки OpenStreetMap)
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, tiles="OpenStreetMap")
+# Создание карты с Folium (Используем спутниковые плитки Esri)
+campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, 
+                         tiles="Esri Satellite", attr="Esri")
 
 # Добавление данных на карту
 for _, row in filtered_gdf.iterrows():
