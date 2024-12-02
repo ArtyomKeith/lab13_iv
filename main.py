@@ -52,14 +52,12 @@ st.markdown("""
     <h1 style="text-align: center;">Кампус Казахский агротехнический исследовательский университет имени С. Сейфуллина</h1>
 """, unsafe_allow_html=True)
 
-# Кнопки для выбора действия
-col1, col2 = st.columns(2)
+# Выпадающий список для выбора здания
+building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
 
-with col1:
-    if st.button('Показать все здания'):
-        create_map()
-
-with col2:
-    building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
-    if building != 'Все' and st.button('Показать здание'):
-        create_map(building)
+# Если выбрано здание, создаем карту с приближением
+if building != 'Все':
+    create_map(building)
+else:
+    # Если не выбрано конкретное здание, показываем все
+    create_map()
