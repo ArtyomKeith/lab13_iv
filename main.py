@@ -10,8 +10,8 @@ geojson_data = requests.get(url).json()
 
 # Функция для отображения карты с приближением на выбранное здание
 def create_map(selected_building=None):
-    # Инициализация карты с возможностью выбора темной темы
-    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True, tiles='CartoDB dark_matter')
+    # Инициализация карты (убрали темную тему)
+    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
     # Добавляем кластер маркеров для улучшения взаимодействия с картой
     marker_cluster = MarkerCluster().add_to(m)
