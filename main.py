@@ -1,7 +1,6 @@
 import streamlit as st
 import folium
 import requests
-from folium import plugins
 from streamlit_folium import folium_static
 
 # Загружаем GeoJSON с GitHub
@@ -22,13 +21,15 @@ def create_map(selected_building=None):
             if feature['properties']['name'] == selected_building:
                 # Извлекаем координаты здания
                 coords = feature['geometry']['coordinates']
-                lat, lon = coords[1], coords[0]  # Для GeoJSON координаты идут как [lon, lat]
+                
+                # Если это точка (Point), то координаты будут в формате [lon, lat]
+                if feature['geometry']['type'] == 'Point':
+                    lat, lon = coords[1], coords[0]
+                    # Добавляем маркер на здание
+                    folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
 
-                # Добавляем маркер на здание
-                folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
-
-                # Приближаем к этому зданию
-                m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
+                    # Приближаем к этому зданию
+                    m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
 
     # Отображаем карту
     folium_static(m)
