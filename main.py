@@ -12,9 +12,14 @@ def create_map(selected_building=None):
     # Инициализация карты
     m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
-    # Добавление только точечных объектов из GeoJSON
+    # Добавляем территорию кампуса (многоугольник)
     for feature in geojson_data['features']:
-        if feature['geometry']['type'] == 'Point':  # Только точки, исключаем полигоны
+        if feature['geometry']['type'] == 'Polygon':  # Добавляем территорию кампуса
+            folium.GeoJson(feature, name="Campus Area").add_to(m)
+
+    # Добавление только точечных объектов (здания) из GeoJSON
+    for feature in geojson_data['features']:
+        if feature['geometry']['type'] == 'Point':  # Только точки
             coords = feature['geometry']['coordinates']
             lat, lon = coords[1], coords[0]
             folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
