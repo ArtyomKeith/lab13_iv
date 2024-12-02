@@ -8,12 +8,15 @@ url = "https://raw.githubusercontent.com/ArtyomKeith/lab13_iv/main/campus.geojso
 geojson_data = requests.get(url).json()
 
 # Функция для отображения карты с приближением на выбранное здание
-def create_map(selected_building=None):
+def create_map(selected_building=None, show_buildings=True):
     # Инициализация карты
     m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
     # Добавление GeoJSON данных на карту
-    folium.GeoJson(geojson_data, name="Campus").add_to(m)
+    geojson_layer = folium.GeoJson(geojson_data, name="Campus")
+    
+    if show_buildings:
+        geojson_layer.add_to(m)
 
     # Если выбрано здание, находим его и приближаем
     if selected_building:
@@ -39,6 +42,9 @@ def create_map(selected_building=None):
                     bounds = [[min(latitudes), min(longitudes)], [max(latitudes), max(longitudes)]]
                     m.fit_bounds(bounds)
 
+    # Добавляем возможность переключать слои
+    folium.LayerControl().add_to(m)
+
     # Отображаем карту
     folium_static(m)
 
@@ -55,9 +61,12 @@ st.markdown("""
 # Выпадающий список для выбора здания
 building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
 
+# Выпадающий список для фильтрации зданий
+show_buildings = st.checkbox('Показать все здания', value=True)
+
 # Если выбрано здание, создаем карту с приближением
 if building != 'Все':
-    create_map(building)
+    create_map(building, show_buildings)
 else:
     # Если не выбрано конкретное здание, показываем все
-    create_map()
+    create_map(show_buildings=show_buildings)
