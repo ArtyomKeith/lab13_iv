@@ -49,7 +49,7 @@ st.markdown("""
             display: none;
         }
     </style>
-    <h1 style="text-align: center;">Кампус Университета</h1>
+    <h1 style="text-align: center;">Кампус Казахский агротехнический исследовательский университет имени С. Сейфуллина</h1>
 """, unsafe_allow_html=True)
 
 # Выпадающий список для выбора здания
