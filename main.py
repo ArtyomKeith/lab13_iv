@@ -42,8 +42,8 @@ def create_map(selected_building=None):
     # Отображаем карту
     folium_static(m)
 
-# Заголовок
-st.title('Кампус Университета')
+# Заголовок без значка скрепки
+st.markdown('<h1 style="text-align: center;">Кампус Университета</h1>', unsafe_allow_html=True)
 
 # Выпадающий список для выбора здания
 building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
