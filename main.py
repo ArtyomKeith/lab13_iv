@@ -1,56 +1,54 @@
 import streamlit as st
-import geopandas as gpd
 import folium
-from streamlit_folium import st_folium
+import geopandas as gpd
+from streamlit_folium import folium_static
+import requests
+from folium import plugins
 
-# URL вашего GeoJSON-файла на GitHub
-geojson_url = "https://raw.githubusercontent.com/ArtyomKeith/lab13_iv/main/campus.geojson"
+# Загружаем GeoJSON с GitHub
+url = "https://raw.githubusercontent.com/ArtyomKeith/lab13_iv/main/campus.geojson"
+geojson_data = requests.get(url).json()
 
-# Загрузка GeoJSON
-@st.cache_data
-def load_geojson(url):
-    gdf = gpd.read_file(url)
-    return gdf
+# Преобразуем GeoJSON в GeoDataFrame
+gdf = gpd.read_file(url)
 
-# Загрузка данных
-gdf = load_geojson(geojson_url)
+# Создаем карту на основе Microsoft Azure
+m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
-# Центр карты (вычисляем автоматически)
-center_lat = gdf.geometry.centroid.y.mean()
-center_lon = gdf.geometry.centroid.x.mean()
+# Добавляем GeoJSON на карту
+folium.GeoJson(geojson_data).add_to(m)
 
-# Убираем таблицу, добавляем элементы управления
-st.title("Интерактивная карта кампуса Казахского агротехнического университета")
+# Добавляем панель поиска по зданиям
+search = plugins.Search(
+    layer=folium.GeoJson(geojson_data),
+    placeholder="Поиск зданий...",
+    collapsed=True
+)
+search.add_to(m)
 
-# Поиск по названию
-search_term = st.text_input("Поиск по названию объекта", "")
+# Добавляем возможность выбора зданий через фильтрацию
+st.title('Кампус Университета')
+building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
 
-# Фильтрация данных по поисковому запросу
-if search_term:
-    filtered_gdf = gdf[gdf['название'].str.contains(search_term, case=False, na=False)]
+if building != 'Все':
+    # Фильтруем по выбранному зданию
+    filtered_geojson = {
+        "type": "FeatureCollection",
+        "features": [feature for feature in geojson_data['features'] if feature['properties']['name'] == building]
+    }
+    folium.GeoJson(filtered_geojson).add_to(m)
 else:
-    filtered_gdf = gdf
+    folium.GeoJson(geojson_data).add_to(m)
 
-# Создание карты с Folium (Используем спутниковые плитки Esri)
-campus_map = folium.Map(location=[center_lat, center_lon], zoom_start=17, 
-                         tiles="Esri Satellite", attr="Esri")
+# Отображаем карту
+folium_static(m)
 
-# Добавление данных на карту
-for _, row in filtered_gdf.iterrows():
-    coords = row.geometry.exterior.coords if row.geometry.type == "Polygon" else row.geometry.coords
-    popup_text = f"<b>{row['название']}</b><br>{row['описание']}"
-    if row.geometry.type == "Polygon":
-        folium.Polygon(
-            locations=[(lat, lon) for lon, lat in coords],
-            color="blue",
-            fill=True,
-            fill_opacity=0.4,
-            popup=folium.Popup(popup_text, max_width=300),
-        ).add_to(campus_map)
+# Добавляем кнопки
+st.markdown("### Дополнительные функции")
+if st.button("Сбросить все фильтры"):
+    folium.GeoJson(geojson_data).add_to(m)
+    folium_static(m)
 
-# Кнопка для сброса поиска
-if st.button("Сбросить поиск"):
-    search_term = ""
-
-# Отображение карты в Streamlit
-st_data = st_folium(campus_map, width=700, height=500)
+if st.button("Показать все здания"):
+    folium.GeoJson(geojson_data).add_to(m)
+    folium_static(m)
