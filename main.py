@@ -28,8 +28,16 @@ def create_map(selected_building=None):
                     # Добавляем маркер на здание
                     folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
 
-                    # Приближаем к этому зданию
+                    # Приближаем к этому зданию, чтобы здание было в центре экрана
                     m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
+
+                # Если это полигоны (например, здания с несколькими углами), то извлекаем координаты для этих полигонов
+                elif feature['geometry']['type'] == 'Polygon':
+                    # Получаем минимальные и максимальные координаты полигона для fit_bounds
+                    latitudes = [coord[1] for coord in coords[0]]
+                    longitudes = [coord[0] for coord in coords[0]]
+                    bounds = [[min(latitudes), min(longitudes)], [max(latitudes), max(longitudes)]]
+                    m.fit_bounds(bounds)
 
     # Отображаем карту
     folium_static(m)
