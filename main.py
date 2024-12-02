@@ -9,9 +9,17 @@ geojson_data = requests.get(url).json()
 
 # Функция для отображения карты с приближением на выбранное здание
 def create_map(selected_building=None):
-    # Инициализация карты с использованием спутникового слоя
-    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True, 
-                   tiles='CartoDB positron')  # Используем спутниковую карту
+    # Инициализация карты с использованием карт Microsoft Azure
+    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
+    
+    # Добавляем слой Microsoft Azure карты
+    folium.TileLayer(
+        tiles='https://ecn.t1.tiles.virtualearth.net/tiles/r{q}.jpeg?g=1',  # URL для карты Microsoft Azure
+        attr='&copy; <a href="https://www.microsoft.com/en-us/maps">Microsoft Azure</a>',
+        name='Microsoft Azure',
+        overlay=False,
+        control=True
+    ).add_to(m)
 
     # Добавление GeoJSON данных на карту
     folium.GeoJson(geojson_data, name="Campus").add_to(m)
@@ -44,7 +52,7 @@ def create_map(selected_building=None):
     folium_static(m)
 
 # Заголовок
-st.title('Кампус Казахский агротехнический исследовательский университет имени С. Сейфуллина')
+st.title('Кампус Университета')
 
 # Выпадающий список для выбора здания
 building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
