@@ -8,9 +8,9 @@ url = "https://raw.githubusercontent.com/ArtyomKeith/lab13_iv/main/campus.geojso
 geojson_data = requests.get(url).json()
 
 # Функция для отображения карты с приближением на выбранное здание
-def create_map(selected_building=None, map_type="Stamen Terrain"):
-    # Инициализация карты с выбором типа карты
-    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True, tiles=map_type)
+def create_map(selected_building=None):
+    # Инициализация карты
+    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
     # Добавление GeoJSON данных на карту
     folium.GeoJson(geojson_data, name="Campus").add_to(m)
@@ -63,18 +63,3 @@ with col2:
     building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
     if building != 'Все' and st.button('Показать здание'):
         create_map(building)
-
-# Переключение типов карт
-map_type = st.selectbox(
-    'Выберите тип карты',
-    ['Stamen Terrain', 'Stamen Toner', 'Stamen Watercolor', 'OpenStreetMap']
-)
-
-# Информация о выбранном здании
-if building != 'Все':
-    selected_building_info = next(feature for feature in geojson_data['features'] if feature['properties']['name'] == building)
-    st.markdown(f"### Информация о здании: {selected_building_info['properties']['name']}")
-    st.write(f"Тип здания: {selected_building_info['properties']['type']}")
-    st.write(f"Описание: {selected_building_info['properties']['description']}")
-else:
-    st.write("Выберите здание для отображения его информации.")
