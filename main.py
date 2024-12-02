@@ -1,54 +1,52 @@
 import streamlit as st
 import folium
-import geopandas as gpd
-from streamlit_folium import folium_static
 import requests
 from folium import plugins
+from streamlit_folium import folium_static
 
 # Загружаем GeoJSON с GitHub
 url = "https://raw.githubusercontent.com/ArtyomKeith/lab13_iv/main/campus.geojson"
 geojson_data = requests.get(url).json()
 
-# Преобразуем GeoJSON в GeoDataFrame
-gdf = gpd.read_file(url)
+# Функция для отображения карты с приближением на выбранное здание
+def create_map(selected_building=None):
+    # Инициализация карты
+    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
-# Создаем карту на основе Microsoft Azure
-m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
+    # Добавление GeoJSON данных на карту
+    folium.GeoJson(geojson_data, name="Campus").add_to(m)
 
-# Добавляем GeoJSON на карту
-folium.GeoJson(geojson_data).add_to(m)
+    # Если выбрано здание, находим его и приближаем
+    if selected_building:
+        for feature in geojson_data['features']:
+            if feature['properties']['name'] == selected_building:
+                # Извлекаем координаты здания
+                coords = feature['geometry']['coordinates']
+                lat, lon = coords[1], coords[0]  # Для GeoJSON координаты идут как [lon, lat]
 
-# Добавляем панель поиска по зданиям
-search = plugins.Search(
-    layer=folium.GeoJson(geojson_data),
-    placeholder="Поиск зданий...",
-    collapsed=True
-)
-search.add_to(m)
+                # Добавляем маркер на здание
+                folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
 
-# Добавляем возможность выбора зданий через фильтрацию
+                # Приближаем к этому зданию
+                m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
+
+    # Отображаем карту
+    folium_static(m)
+
+# Заголовок
 st.title('Кампус Университета')
+
+# Выпадающий список для выбора здания
 building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
 
+# Если выбрано здание, создаем карту с приближением
 if building != 'Все':
-    # Фильтруем по выбранному зданию
-    filtered_geojson = {
-        "type": "FeatureCollection",
-        "features": [feature for feature in geojson_data['features'] if feature['properties']['name'] == building]
-    }
-    folium.GeoJson(filtered_geojson).add_to(m)
+    create_map(building)
 else:
-    folium.GeoJson(geojson_data).add_to(m)
+    # Если не выбрано конкретное здание, показываем все
+    create_map()
 
-# Отображаем карту
-folium_static(m)
-
-# Добавляем кнопки
+# Дополнительные кнопки
 st.markdown("### Дополнительные функции")
 if st.button("Сбросить все фильтры"):
-    folium.GeoJson(geojson_data).add_to(m)
-    folium_static(m)
-
-if st.button("Показать все здания"):
-    folium.GeoJson(geojson_data).add_to(m)
-    folium_static(m)
+    create_map()
