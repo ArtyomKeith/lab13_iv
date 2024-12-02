@@ -44,7 +44,7 @@ def create_map(selected_building=None):
     folium_static(m)
 
 # Заголовок
-st.title('Кампус Университета')
+st.title('Кампус Казахский агротехнический исследовательский университет имени С. Сейфуллина')
 
 # Выпадающий список для выбора здания
 building = st.selectbox('Выберите здание', ['Все'] + [feature['properties']['name'] for feature in geojson_data['features']])
@@ -54,9 +54,4 @@ if building != 'Все':
     create_map(building)
 else:
     # Если не выбрано конкретное здание, показываем все
-    create_map()
-
-# Дополнительные кнопки
-st.markdown("### Дополнительные функции")
-if st.button("Сбросить все фильтры"):
     create_map()
