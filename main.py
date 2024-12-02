@@ -9,8 +9,9 @@ geojson_data = requests.get(url).json()
 
 # Функция для отображения карты с приближением на выбранное здание
 def create_map(selected_building=None):
-    # Инициализация карты
-    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
+    # Инициализация карты с использованием спутникового слоя
+    m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True, 
+                   tiles='CartoDB positron')  # Используем спутниковую карту
 
     # Добавление GeoJSON данных на карту
     folium.GeoJson(geojson_data, name="Campus").add_to(m)
