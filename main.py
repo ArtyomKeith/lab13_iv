@@ -12,26 +12,32 @@ def create_map(selected_building=None):
     # Инициализация карты
     m = folium.Map(location=[51.1879, 71.4085], zoom_start=16, control_scale=True)
 
-    # Добавляем территорию кампуса (многоугольник)
-    for feature in geojson_data['features']:
-        if feature['geometry']['type'] == 'Polygon':  # Добавляем территорию кампуса
-            folium.GeoJson(feature, name="Campus Area").add_to(m)
-
-    # Добавление только точечных объектов (здания) из GeoJSON
-    for feature in geojson_data['features']:
-        if feature['geometry']['type'] == 'Point':  # Только точки
-            coords = feature['geometry']['coordinates']
-            lat, lon = coords[1], coords[0]
-            folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
+    # Добавление GeoJSON данных на карту
+    folium.GeoJson(geojson_data, name="Campus").add_to(m)
 
     # Если выбрано здание, находим его и приближаем
     if selected_building:
         for feature in geojson_data['features']:
             if feature['properties']['name'] == selected_building:
+                # Извлекаем координаты здания
                 coords = feature['geometry']['coordinates']
+                
+                # Если это точка (Point), то координаты будут в формате [lon, lat]
                 if feature['geometry']['type'] == 'Point':
                     lat, lon = coords[1], coords[0]
+                    # Добавляем маркер на здание
+                    folium.Marker([lat, lon], popup=feature['properties']['name']).add_to(m)
+
+                    # Приближаем к этому зданию, чтобы здание было в центре экрана
                     m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
+
+                # Если это полигоны (например, здания с несколькими углами), то извлекаем координаты для этих полигонов
+                elif feature['geometry']['type'] == 'Polygon':
+                    # Получаем минимальные и максимальные координаты полигона для fit_bounds
+                    latitudes = [coord[1] for coord in coords[0]]
+                    longitudes = [coord[0] for coord in coords[0]]
+                    bounds = [[min(latitudes), min(longitudes)], [max(latitudes), max(longitudes)]]
+                    m.fit_bounds(bounds)
 
     # Отображаем карту
     folium_static(m)
