@@ -85,7 +85,7 @@ building_b = st.selectbox('Выберите второе здание для м�
 
 # Если выбрано здание, создаем карту с приближением
 if building != 'Все':
-    create_map(building, map_type, building_a if building_a != 'Все' else None, building_b if building_b != 'Все' else None)
+    create_map(selected_building=building, map_type=map_type, building_a=building_a if building_a != 'Все' else None, building_b=building_b if building_b != 'Все' else None)
 else:
     # Если не выбрано конкретное здание, показываем все
-    create_map(map_type=map_type, building_a if building_a != 'Все' else None, building_b if building_b != 'Все' else None)
+    create_map(map_type=map_type, building_a=building_a if building_a != 'Все' else None, building_b=building_b if building_b != 'Все' else None)
