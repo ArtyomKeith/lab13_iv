@@ -20,13 +20,14 @@ def create_map(selected_building=None):
     folium.GeoJson(geojson_data, name="Campus Area", style_function=lambda x: {'fillColor': '#ff7800', 'color': 'black', 'weight': 1, 'fillOpacity': 0.4}).add_to(m)
 
     # Добавляем здания на карту
+    building_coords = None  # Переменная для хранения координат выбранного здания
     for feature in geojson_data['features']:
         if feature['geometry']['type'] == 'Point':  # Добавляем только точки (здания)
             coords = feature['geometry']['coordinates']
             lat, lon = coords[1], coords[0]
             building_name = feature['properties']['name']
             building_description = feature['properties'].get('description', 'Описание отсутствует')
-            
+
             # Выбираем иконку маркера в зависимости от типа здания
             building_type = feature['properties'].get('type', 'default')
             if building_type == 'administrative':
@@ -38,14 +39,18 @@ def create_map(selected_building=None):
             marker = folium.Marker([lat, lon], popup=f"<b>{building_name}</b><br>{building_description}", icon=icon)
             marker.add_to(marker_cluster)  # Добавляем маркер в кластер
 
+            # Если здание выбрано, сохраняем его координаты
+            if selected_building == building_name:
+                building_coords = [lat, lon]
+
     # Если выбрано здание, находим его и приближаем
-    if selected_building:
-        for feature in geojson_data['features']:
-            if feature['properties']['name'] == selected_building:
-                coords = feature['geometry']['coordinates']
-                if feature['geometry']['type'] == 'Point':
-                    lat, lon = coords[1], coords[0]
-                    m.fit_bounds([[lat - 0.002, lon - 0.002], [lat + 0.002, lon + 0.002]])
+    if building_coords:
+        # Убедимся, что координаты найдены, и обновляем область видимости карты
+        m.fit_bounds([[
+            building_coords[0] - 0.002, building_coords[1] - 0.002
+        ], [
+            building_coords[0] + 0.002, building_coords[1] + 0.002
+        ]])
 
     # Отображаем карту
     folium_static(m)
